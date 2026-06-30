@@ -1,4 +1,4 @@
-# DH Editor
+# DH Studio
 
 Interactive Denavit–Hartenberg Robotics Engineering Platform
 
@@ -6,7 +6,7 @@ Interactive Denavit–Hartenberg Robotics Engineering Platform
 
 ## Overview
 
-DH Editor is a professional browser-based application for visualizing, analyzing, and learning robot manipulator kinematics using the Denavit–Hartenberg convention. It is designed to serve robotics researchers, university professors, graduate students, and engineering teams who need a fast and intuitive tool for robot modeling and analysis.
+DH Studio is a professional browser-based application for visualizing, analyzing, and learning robot manipulator kinematics using the Denavit–Hartenberg convention. It is designed to serve robotics researchers, university professors, graduate students, and engineering teams who need a fast and intuitive tool for robot modeling and analysis.
 
 ---
 
@@ -28,7 +28,7 @@ Built on Three.js with physically based rendering, the viewport provides:
 
 - Standard Denavit–Hartenberg forward kinematics
 - Revolute and prismatic joint types
-- Geometric Jacobian computation (6×n)
+- Geometric Jacobian computation $(6 \times n)$
 - Yoshikawa manipulability measure
 - Real-time singularity detection and status reporting
 - Homogeneous transformation matrices per joint
@@ -78,20 +78,32 @@ Built on Three.js with physically based rendering, the viewport provides:
 
 ## DH Convention
 
-The application uses the standard (Craig) Denavit–Hartenberg convention. Each joint is described by four parameters:
+The application uses the standard (Craig) Denavit–Hartenberg convention. Each joint-link pair is described by four parameters:
 
 | Parameter | Symbol | Description |
 |---|---|---|
-| Joint angle | θ | Rotation about z(i−1) aligning x(i−1) with x(i) |
-| Link offset | d | Translation along z(i−1) to the common normal |
-| Link length | a | Distance between z(i−1) and z(i) along the common normal |
-| Twist angle | α | Rotation about x(i) aligning z(i−1) with z(i) |
+| Joint angle | $\theta_i$ | Rotation about $z_{i-1}$ aligning $x_{i-1}$ with $x_i$ |
+| Link offset | $d_i$ | Translation along $z_{i-1}$ to the common normal |
+| Link length | $a_i$ | Distance between $z_{i-1}$ and $z_i$ along the common normal |
+| Twist angle | $\alpha_i$ | Rotation about $x_i$ aligning $z_{i-1}$ with $z_i$ |
 
-The transformation between consecutive frames is:
+The transformation between consecutive frames is the product of four elementary transforms:
 
-```
-T(i-1, i) = Rz(θ) · Tz(d) · Tx(a) · Rx(α)
-```
+$$T_{i-1,i} = R_z(\theta_i) \; T_z(d_i) \; T_x(a_i) \; R_x(\alpha_i)$$
+
+which expands to the homogeneous matrix:
+
+$$T_{i-1,i} = \begin{bmatrix} c\theta_i & -s\theta_i \, c\alpha_i & s\theta_i \, s\alpha_i & a_i \, c\theta_i \\ s\theta_i & c\theta_i \, c\alpha_i & -c\theta_i \, s\alpha_i & a_i \, s\theta_i \\ 0 & s\alpha_i & c\alpha_i & d_i \\ 0 & 0 & 0 & 1 \end{bmatrix}$$
+
+---
+
+## Forward Kinematics
+
+The end-effector pose is obtained by chaining all joint transforms from base to tip:
+
+$$T_0^n = \prod_{i=1}^{n} T_{i-1}^{\,i}(q_i)$$
+
+where $q_i = \theta_i$ for a revolute joint and $q_i = d_i$ for a prismatic joint.
 
 ---
 
@@ -115,43 +127,46 @@ Open `index.html` in any modern browser. No build step or server is required. CD
 ## File Structure
 
 ```
-dth/
+DH_Studio/
   index.html    Single-file application (HTML, CSS, JavaScript)
   README.md     This document
-  prompt.txt    Original design specification
 ```
 
 ---
 
 ## Technical Notes
 
-The Jacobian uses the geometric (velocity) formulation. For revolute joint i:
+### Geometric Jacobian
 
-```
-Ji = [ z(i−1) × (pe − p(i−1)) ]
-     [         z(i−1)          ]
-```
+The Jacobian maps joint velocities $\dot{q}$ to end-effector velocities $\dot{x} = J(q)\,\dot{q}$. Each column is derived from the joint axis $\hat{z}_{i-1}$ of frame $i-1$:
 
-For prismatic joint i:
+For a **revolute** joint $i$:
 
-```
-Ji = [ z(i−1) ]
-     [   0    ]
-```
+$$\mathbf{J}_i = \begin{bmatrix} \hat{z}_{i-1} \times (p_e - p_{i-1}) \\ \hat{z}_{i-1} \end{bmatrix}$$
 
-The manipulability measure is computed from the position-only (3×n) sub-Jacobian:
+For a **prismatic** joint $i$:
 
-```
-w = sqrt( det( Jv · Jv^T ) )
-```
+$$\mathbf{J}_i = \begin{bmatrix} \hat{z}_{i-1} \\ \mathbf{0} \end{bmatrix}$$
 
-When w approaches zero, the robot is near a singular configuration and loses one or more degrees of freedom in task space.
+### Manipulability
+
+The Yoshikawa manipulability measure is computed from the linear velocity sub-Jacobian $J_v$ (first three rows):
+
+$$w = \sqrt{\det\!\left(J_v \, J_v^T\right)} \geq 0$$
+
+When $w \to 0$ the robot approaches a singular configuration and loses one or more degrees of freedom in task space. The status indicator in the interface reflects three states:
+
+| Condition | Threshold | Status |
+|---|---|---|
+| $w > 0.1$ | Well-conditioned | Green |
+| $0 < w \leq 0.1$ | Near singularity | Yellow |
+| $w \approx 0$ | Singular | Red |
 
 ---
 
 ## Browser Compatibility
 
-Requires a browser with ES module support and import map support. Tested on:
+Requires ES module and import map support. Tested on:
 
 - Chrome 112+
 - Firefox 108+
