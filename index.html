@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DH Studio · Robotics Engineering Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script>MathJax={tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]},svg:{fontCache:'global'},startup:{typeset:false}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+:root {
+  --bg: #0c0d11;
+  --bg2: #13141a;
+  --surface: #1a1b24;
+  --surface2: #21222e;
+  --border: #2a2c3d;
+  --border2: #1f2030;
+  --text: #e8e9f3;
+  --text2: #9a9cb8;
+  --text3: #5a5c78;
+  --accent: #5b8def;
+  --accent-h: #7aa6f5;
+  --accent-dim: rgba(91,141,239,0.12);
+  --green: #22c55e;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --panel-w: 300px;
+  --top-h: 46px;
+  --bot-h: 26px;
+  --r: 6px;
+  --r2: 10px;
+  --font-mono: 'JetBrains Mono', monospace;
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+  --j0: #5b8def; --j1: #a78bfa; --j2: #34d399;
+  --j3: #fbbf24; --j4: #f87171; --j5: #fb7185;
+  --j6: #38bdf8; --j7: #a3e635;
+}
+html[data-theme="light"] {
+  --bg: #eef0f8; --bg2: #f8f9fd; --surface: #ffffff;
+  --surface2: #f0f2fa; --border: #dde0ed; --border2: #e8eaf5;
+  --text: #1a1c2e; --text2: #6b6e8e; --text3: #9a9cb8;
+  --accent: #3b6fd4; --accent-h: #2b5cc4; --accent-dim: rgba(59,111,212,0.1);
+  --shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;font-size:13px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+
+/* ── Layout ── */
+#app{display:flex;flex-direction:column;height:100vh}
+#topbar{height:var(--top-h);flex-shrink:0;display:flex;align-items:center;gap:6px;padding:0 12px;background:var(--bg2);border-bottom:1px solid var(--border);z-index:50;user-select:none}
+#main{flex:1;display:flex;overflow:hidden;position:relative}
+#left-panel{width:var(--panel-w);flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .2s ease}
+#left-panel.collapsed{width:0}
+#viewport-wrap{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+#canvas{width:100%;height:100%;display:block;outline:none}
+#right-panel{width:var(--panel-w);flex-shrink:0;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .2s ease}
+#right-panel.collapsed{width:0}
+#statusbar{height:var(--bot-h);flex-shrink:0;display:flex;align-items:center;padding:0 14px;gap:16px;background:var(--bg2);border-top:1px solid var(--border);font-size:11px;color:var(--text2)}
+#statusbar .sb-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+#statusbar .sb-sep{color:var(--border);margin:0 2px}
+
+/* ── Topbar ── */
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;letter-spacing:-.3px;color:var(--text);margin-right:8px}
+.logo-icon{width:24px;height:24px;background:linear-gradient(135deg,var(--accent),var(--j1));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:800}
+.top-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 4px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--text2);cursor:pointer;font-size:12px;font-family:inherit;transition:all .15s;white-space:nowrap;line-height:1}
+.btn:hover{background:var(--surface2);color:var(--text);border-color:var(--text3)}
+.btn.primary{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.btn.primary:hover{background:var(--accent);color:#fff}
+.btn.icon{padding:5px 8px;min-width:30px;justify-content:center}
+.btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.preset-select{padding:5px 8px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;outline:none}
+.preset-select:hover{border-color:var(--text3)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+
+/* ── Panel sections ── */
+.panel-section{border-bottom:1px solid var(--border)}
+.panel-header{display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer;user-select:none;font-weight:600;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text2)}
+.panel-header:hover{background:var(--surface)}
+.panel-header .ph-arrow{margin-left:auto;transition:transform .2s;font-size:10px}
+.panel-header.collapsed .ph-arrow{transform:rotate(-90deg)}
+.panel-body{overflow-y:auto;transition:max-height .2s ease}
+.panel-body.collapsed{max-height:0!important;overflow:hidden}
+.panel-body::-webkit-scrollbar{width:4px}
+.panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── DH Table ── */
+.dh-table-wrap{overflow-x:auto;padding:0 0 4px}
+.dh-table{width:100%;border-collapse:collapse;font-size:11px}
+.dh-table th{padding:5px 4px;text-align:center;color:var(--text3);font-weight:500;background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap;font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+.dh-table td{padding:2px 2px;border-bottom:1px solid var(--border2);text-align:center}
+.dh-table tr:hover td{background:var(--surface2)}
+.dh-table input[type=number]{width:54px;padding:3px 4px;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--text);font-size:11px;font-family:var(--font-mono);text-align:center;outline:none;-moz-appearance:textfield}
+.dh-table input[type=number]:hover{border-color:var(--border);background:var(--surface)}
+.dh-table input[type=number]:focus{border-color:var(--accent);background:var(--surface2)}
+.dh-table input::-webkit-outer-spin-button,.dh-table input::-webkit-inner-spin-button{-webkit-appearance:none}
+.dh-table select{padding:3px 4px;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--text);font-size:11px;font-family:inherit;outline:none;cursor:pointer}
+.dh-table select:hover{border-color:var(--border);background:var(--surface)}
+.dh-table .del-btn{width:18px;height:18px;border:none;border-radius:3px;background:transparent;color:var(--text3);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;margin:auto}
+.dh-table .del-btn:hover{background:rgba(239,68,68,.15);color:var(--red)}
+.joint-dot{width:8px;height:8px;border-radius:50%;margin:auto;flex-shrink:0}
+
+/* ── Sliders ── */
+.slider-section{padding:8px 12px}
+.slider-item{margin-bottom:10px}
+.slider-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.slider-label{display:flex;align-items:center;gap:6px;font-weight:500;font-size:11px}
+.slider-tag{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.slider-tag.r{background:rgba(91,141,239,.15);color:var(--accent)}
+.slider-tag.p{background:rgba(251,191,36,.15);color:var(--yellow)}
+.slider-value{font-family:var(--font-mono);font-size:11px;color:var(--text2);min-width:52px;text-align:right}
+input[type=range]{width:100%;height:4px;accent-color:var(--accent);cursor:pointer}
+.slider-limits{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:2px;font-family:var(--font-mono)}
+
+/* ── Presets ── */
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px}
+.preset-btn{padding:7px 8px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--text2);cursor:pointer;font-size:11px;text-align:center;transition:all .15s;font-family:inherit}
+.preset-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.preset-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);font-weight:600}
+
+/* ── Right panel tabs ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:8px 4px;text-align:center;font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.3px}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{flex:1;overflow-y:auto;padding:12px}
+.tab-content::-webkit-scrollbar{width:4px}
+.tab-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── Inspector content ── */
+.inspector-section{margin-bottom:16px}
+.inspector-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px}
+.pose-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px}
+.pose-cell{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:6px 8px;text-align:center}
+.pose-cell .pc-lbl{font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.pose-cell .pc-val{font-family:var(--font-mono);font-size:12px;color:var(--text);margin-top:2px;font-weight:500}
+.mat4{font-family:var(--font-mono);font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px;line-height:1.8;overflow-x:auto;white-space:nowrap}
+.mat4 .mat-row{display:flex;gap:8px}
+.mat4 .mat-num{width:64px;text-align:right;color:var(--text2)}
+.mat4 .mat-num.accent{color:var(--accent)}
+.mat-collapse{border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;overflow:hidden}
+.mat-collapse-header{padding:6px 10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:var(--surface);font-size:11px;font-weight:500}
+.mat-collapse-header:hover{background:var(--surface2)}
+.mat-collapse-body{padding:8px;background:var(--bg2);display:none}
+.mat-collapse-body.open{display:block}
+.jacobian-wrap{overflow-x:auto}
+.jmat{font-family:var(--font-mono);font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px;line-height:1.8;white-space:nowrap}
+.jmat .jrow{display:flex;gap:6px;margin-bottom:1px}
+.jmat .jnum{width:56px;text-align:right;color:var(--text2)}
+.manip-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:8px}
+.manip-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.manip-row:last-child{margin-bottom:0}
+.manip-key{font-size:11px;color:var(--text2)}
+.manip-val{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text)}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.3px}
+.status-badge.good{background:rgba(34,197,94,.1);color:var(--green)}
+.status-badge.warn{background:rgba(245,158,11,.1);color:var(--yellow)}
+.status-badge.bad{background:rgba(239,68,68,.1);color:var(--red)}
+.learn-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:10px;font-size:12px;line-height:1.7;color:var(--text2)}
+.learn-block h4{font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px}
+.learn-block .eq{background:var(--bg2);border-radius:4px;padding:8px;margin:6px 0;text-align:center;overflow-x:auto}
+.learn-param{display:flex;gap:8px;margin-bottom:6px;padding:6px;background:var(--bg2);border-radius:4px}
+.learn-param-sym{font-family:var(--font-mono);font-weight:700;color:var(--accent);width:20px;flex-shrink:0}
+
+/* ── Viewport overlay ── */
+.vp-overlay{position:absolute;pointer-events:none;z-index:10}
+.vp-controls{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;gap:4px;pointer-events:all}
+.vp-btn{width:30px;height:30px;border:1px solid var(--border);border-radius:var(--r);background:rgba(19,20,26,.8);backdrop-filter:blur(8px);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .15s}
+.vp-btn:hover{background:var(--surface);color:var(--text)}
+.vp-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.vp-info{position:absolute;top:10px;left:10px;pointer-events:none}
+.vp-badge{display:inline-block;padding:3px 8px;background:rgba(19,20,26,.7);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:20px;font-size:10px;color:var(--text2);margin-right:4px;font-family:var(--font-mono)}
+
+/* ── Toast ── */
+#toast-container{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+.toast{padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text);box-shadow:var(--shadow);animation:toast-in .2s ease;pointer-events:none}
+.toast.fade-out{animation:toast-out .3s ease forwards}
+@keyframes toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toast-out{to{opacity:0;transform:translateY(-8px)}}
+
+/* ── Welcome overlay ── */
+#welcome{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center}
+.welcome-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:var(--shadow)}
+.welcome-card h2{font-size:22px;font-weight:700;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--j1));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.welcome-card p{color:var(--text2);line-height:1.6;margin-bottom:16px;font-size:13px}
+.welcome-features{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.wf{padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--text2)}
+.wf strong{display:block;color:var(--text);margin-bottom:2px;font-size:12px}
+
+/* ── Misc ── */
+.sep{flex:1}
+.text-mono{font-family:var(--font-mono)}
+.text-dim{color:var(--text3)}
+.text-muted{color:var(--text2)}
+.text-accent{color:var(--accent)}
+.text-green{color:var(--green)}
+.text-yellow{color:var(--yellow)}
+.text-red{color:var(--red)}
+.hidden{display:none!important}
+a{color:var(--accent);text-decoration:none}
+mjx-container{display:inline!important}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- TOP BAR -->
+  <nav id="topbar">
+    <button class="btn icon" id="btn-left-toggle" title="Toggle left panel (H)">≡</button>
+    <div class="logo"><div class="logo-icon">DH</div>DH Studio</div>
+    <div class="top-sep"></div>
+    <select class="preset-select" id="preset-select">
+      <option>2R Planar</option>
+      <option>3R Spatial</option>
+      <option selected>PUMA 560</option>
+      <option>UR5</option>
+      <option>SCARA</option>
+      <option>Stanford</option>
+    </select>
+    <button class="btn" id="btn-add-joint" title="Add joint">+ Joint</button>
+    <button class="btn" id="btn-remove-joint" title="Remove last joint">− Joint</button>
+    <div class="top-sep"></div>
+    <button class="btn icon" id="btn-animate" title="Animate (Space)">▶</button>
+    <button class="btn icon" id="btn-reset-q" title="Reset joints (R)">↺</button>
+    <div class="top-sep"></div>
+    <button class="btn" id="btn-undo" title="Undo (Ctrl+Z)">↩</button>
+    <button class="btn" id="btn-redo" title="Redo (Ctrl+Y)">↪</button>
+    <div class="topbar-right">
+      <button class="btn" id="btn-export" title="Export JSON">↑ Export</button>
+      <button class="btn" id="btn-import" title="Import JSON">↓ Import</button>
+      <input type="file" id="import-input" accept=".json" class="hidden">
+      <div class="top-sep"></div>
+      <button class="btn icon" id="btn-theme" title="Toggle theme (T)">☀</button>
+      <button class="btn icon" id="btn-right-toggle" title="Toggle right panel (I)">⊡</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- LEFT PANEL -->
+    <aside id="left-panel">
+      <!-- DH Table -->
+      <div class="panel-section" style="flex-shrink:0">
+        <div class="panel-header" id="ph-dh">
+          <span>DH Parameters</span>
+          <span class="ph-arrow">▾</span>
+        </div>
+        <div class="panel-body" id="pb-dh" style="max-height:260px">
+          <div class="dh-table-wrap">
+            <table class="dh-table" id="dh-table">
+              <thead><tr>
+                <th></th><th>T</th><th>θ₀°</th><th>d</th><th>a</th><th>α°</th><th>Min</th><th>Max</th><th></th>
+              </tr></thead>
+              <tbody id="dh-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Joint Controls -->
+      <div class="panel-section" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+        <div class="panel-header" id="ph-joints">
+          <span>Joint Controls</span>
+          <span class="ph-arrow">▾</span>
+        </div>
+        <div class="panel-body" id="pb-joints" style="flex:1;max-height:9999px">
+          <div class="slider-section" id="slider-container"></div>
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="panel-section" style="flex-shrink:0">
+        <div class="panel-header" id="ph-presets">
+          <span>Presets</span>
+          <span class="ph-arrow">▾</span>
+        </div>
+        <div class="panel-body" id="pb-presets" style="max-height:120px">
+          <div class="preset-grid" id="preset-grid"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- VIEWPORT -->
+    <div id="viewport-wrap">
+      <canvas id="canvas" tabindex="0"></canvas>
+      <div class="vp-info" id="vp-info">
+        <span class="vp-badge" id="badge-joints">0 joints</span>
+        <span class="vp-badge" id="badge-ee">EE: —</span>
+      </div>
+      <div class="vp-controls">
+        <button class="vp-btn active" id="vpb-frames" title="Toggle frames">⊹</button>
+        <button class="vp-btn active" id="vpb-grid" title="Toggle grid">⊞</button>
+        <button class="vp-btn" id="vpb-ws" title="Toggle workspace">◎</button>
+        <button class="vp-btn" id="vpb-ortho" title="Orthographic">⬜</button>
+        <button class="vp-btn" id="vpb-focus" title="Focus robot (F)">⊙</button>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <aside id="right-panel">
+      <div class="tabs" id="inspector-tabs">
+        <div class="tab active" data-tab="pose">Pose</div>
+        <div class="tab" data-tab="matrices">Matrices</div>
+        <div class="tab" data-tab="jacobian">Jacobian</div>
+        <div class="tab" data-tab="learn">Learn</div>
+      </div>
+      <div class="tab-content" id="tab-content"></div>
+    </aside>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="statusbar">
+    <div class="sb-dot" id="sb-dot"></div>
+    <span id="sb-status">Ready</span>
+    <span class="sb-sep">·</span>
+    <span id="sb-fk">FK: —</span>
+    <span class="sb-sep">·</span>
+    <span id="sb-ee" class="text-mono">EE: —</span>
+    <span class="sb-sep">·</span>
+    <span id="sb-manip">w = —</span>
+    <span style="margin-left:auto;color:var(--text3)">DH Studio v1.0</span>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- WELCOME -->
+<div id="welcome">
+  <div class="welcome-card">
+    <h2>DH Studio</h2>
+    <p>Interactive Denavit–Hartenberg robotics platform for visualization, analysis, and education.</p>
+    <div class="welcome-features">
+      <div class="wf"><strong>3D Visualization</strong>Real-time Three.js rendering</div>
+      <div class="wf"><strong>Forward Kinematics</strong>DH convention, live updates</div>
+      <div class="wf"><strong>Jacobian Analysis</strong>Singularity detection</div>
+      <div class="wf"><strong>6 Preset Robots</strong>PUMA, UR5, SCARA &amp; more</div>
+    </div>
+    <button class="btn primary" id="welcome-btn" style="width:100%;justify-content:center;padding:10px">Get Started →</button>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ═══════════════════════════════════════════════════════
+//  MATH UTILITIES
+// ═══════════════════════════════════════════════════════
+
+const DEG = Math.PI / 180;
+const RAD = 180 / Math.PI;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+function dhMatrix(theta, d, a, alpha) {
+  const ct = Math.cos(theta), st = Math.sin(theta);
+  const ca = Math.cos(alpha), sa = Math.sin(alpha);
+  const m = new THREE.Matrix4();
+  m.set(
+    ct, -st*ca,  st*sa, a*ct,
+    st,  ct*ca, -ct*sa, a*st,
+     0,     sa,     ca,    d,
+     0,      0,      0,    1
+  );
+  return m;
+}
+
+// THREE.Matrix4 stores column-major: elements[col*4 + row]
+function matCol(m, col) {
+  const e = m.elements;
+  return new THREE.Vector3(e[col*4], e[col*4+1], e[col*4+2]);
+}
+
+function formatNum(n, dec=4) {
+  const s = n.toFixed(dec);
+  return s.startsWith('-') ? s : ' ' + s;
+}
+
+function det3(m) {
+  return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
+        -m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
+        +m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+}
+
+// Rotation matrix → RPY (ZYX Euler)
+function matToRPY(m) {
+  const e = m.elements;
+  // e is column-major, R(row,col) = e[col*4+row]
+  const r11=e[0],r21=e[1],r31=e[2];
+  const r32=e[6],r33=e[10];
+  const pitch = Math.atan2(-r31, Math.sqrt(r11*r11+r21*r21));
+  const roll  = Math.atan2(r32/Math.cos(pitch), r33/Math.cos(pitch));
+  const yaw   = Math.atan2(r21/Math.cos(pitch), r11/Math.cos(pitch));
+  return {roll, pitch, yaw};
+}
+
+// ═══════════════════════════════════════════════════════
+//  DH ROBOT
+// ═══════════════════════════════════════════════════════
+
+const JOINT_COLORS = ['#5b8def','#a78bfa','#34d399','#fbbf24','#f87171','#fb7185','#38bdf8','#a3e635'];
+
+class DHRobot {
+  constructor() {
+    this.joints = [];
+    this._hist = [];
+    this._histIdx = -1;
+  }
+
+  _clone() { return this.joints.map(j => ({...j})); }
+
+  _commit() {
+    this._hist = this._hist.slice(0, this._histIdx + 1);
+    this._hist.push(JSON.stringify(this._clone()));
+    if (this._hist.length > 80) this._hist.shift(); else this._histIdx++;
+  }
+
+  addJoint(params = {}) {
+    this.joints.push({
+      type: 'revolute', thetaOffset: 0, dOffset: 0,
+      a: 0.3, alpha: 0, min: -Math.PI, max: Math.PI, q: 0,
+      ...params
+    });
+    this._commit();
+  }
+
+  removeJoint(idx = -1) {
+    if (this.joints.length <= 1) return false;
+    const i = idx < 0 ? this.joints.length - 1 : idx;
+    this.joints.splice(i, 1);
+    this._commit();
+    return true;
+  }
+
+  setParam(idx, key, value) {
+    this.joints[idx][key] = value;
+    this._commit();
+  }
+
+  setQ(idx, q) {
+    this.joints[idx].q = clamp(q, this.joints[idx].min, this.joints[idx].max);
+  }
+
+  resetQ() { this.joints.forEach(j => j.q = 0); }
+
+  undo() {
+    if (this._histIdx <= 0) return false;
+    this._histIdx--;
+    this.joints = JSON.parse(this._hist[this._histIdx]);
+    return true;
+  }
+
+  redo() {
+    if (this._histIdx >= this._hist.length - 1) return false;
+    this._histIdx++;
+    this.joints = JSON.parse(this._hist[this._histIdx]);
+    return true;
+  }
+
+  computeFK() {
+    const mats = [];
+    let T = new THREE.Matrix4();
+    for (const j of this.joints) {
+      const theta = j.type === 'revolute'  ? j.thetaOffset + j.q : j.thetaOffset;
+      const d     = j.type === 'prismatic' ? j.dOffset     + j.q : j.dOffset;
+      T = new THREE.Matrix4().multiplyMatrices(T, dhMatrix(theta, d, j.a, j.alpha));
+      mats.push(T.clone());
+    }
+    return mats;
+  }
+
+  computeJacobian(fkMats) {
+    const n = this.joints.length;
+    if (!n) return [];
+    const pe = matCol(fkMats[n-1], 3);
+    const J = [];
+    for (let i = 0; i < n; i++) {
+      const zi = i === 0 ? new THREE.Vector3(0,0,1) : matCol(fkMats[i-1], 2);
+      const pi = i === 0 ? new THREE.Vector3(0,0,0) : matCol(fkMats[i-1], 3);
+      const col = new Array(6).fill(0);
+      if (this.joints[i].type === 'revolute') {
+        const dp = pe.clone().sub(pi);
+        const cr = zi.clone().cross(dp);
+        col[0]=cr.x; col[1]=cr.y; col[2]=cr.z;
+        col[3]=zi.x; col[4]=zi.y; col[5]=zi.z;
+      } else {
+        col[0]=zi.x; col[1]=zi.y; col[2]=zi.z;
+      }
+      J.push(col);
+    }
+    return J;
+  }
+
+  analyzeManipulability(J) {
+    const n = J.length;
+    if (!n) return { w: 0, isSingular: true, wStr: '0.0000' };
+    // 3×3 Jv*Jv^T
+    const M = [[0,0,0],[0,0,0],[0,0,0]];
+    for (let i = 0; i < 3; i++)
+      for (let jj = 0; jj < 3; jj++)
+        for (let k = 0; k < n; k++) M[i][jj] += J[k][i]*J[k][jj];
+    const d = det3(M);
+    const w = Math.sqrt(Math.max(0, d));
+    return { w, isSingular: w < 0.001, wStr: w.toExponential(3) };
+  }
+
+  load(data) {
+    this.joints = data.joints.map(j => ({...j}));
+    this._commit();
+  }
+
+  toJSON() { return { version: 1, joints: this._clone() }; }
+}
+
+// ═══════════════════════════════════════════════════════
+//  PRESETS
+// ═══════════════════════════════════════════════════════
+
+const PI = Math.PI;
+
+const PRESETS = {
+  '2R Planar': { joints: [
+    { type:'revolute', thetaOffset:0, dOffset:0, a:0.5, alpha:0, min:-PI, max:PI, q:0.5 },
+    { type:'revolute', thetaOffset:0, dOffset:0, a:0.4, alpha:0, min:-PI, max:PI, q:-0.5 }
+  ]},
+  '3R Spatial': { joints: [
+    { type:'revolute', thetaOffset:0, dOffset:0, a:0,   alpha:PI/2, min:-PI, max:PI, q:0.3 },
+    { type:'revolute', thetaOffset:0, dOffset:0, a:0.5, alpha:0,    min:-PI, max:PI, q:0.5 },
+    { type:'revolute', thetaOffset:0, dOffset:0, a:0.4, alpha:0,    min:-PI, max:PI, q:-0.3 }
+  ]},
+  'PUMA 560': { joints: [
+    { type:'revolute', thetaOffset:0, dOffset:0,      a:0,       alpha:-PI/2, min:-PI, max:PI, q:0 },
+    { type:'revolute', thetaOffset:0, dOffset:0,      a:0.4318,  alpha:0,     min:-PI, max:PI, q:PI/4 },
+    { type:'revolute', thetaOffset:0, dOffset:0.1501, a:-0.0203, alpha:-PI/2, min:-PI, max:PI, q:PI/4 },
+    { type:'revolute', thetaOffset:0, dOffset:0.4318, a:0,       alpha:PI/2,  min:-PI, max:PI, q:0 },
+    { type:'revolute', thetaOffset:0, dOffset:0,      a:0,       alpha:-PI/2, min:-PI, max:PI, q:0 },
+    { type:'revolute', thetaOffset:0, dOffset:0,      a:0,       alpha:0,     min:-PI, max:PI, q:0 }
+  ]},
+  'UR5': { joints: [
+    { type:'revolute', thetaOffset:0, dOffset:0.0892, a:0,       alpha:PI/2,  min:-2*PI, max:2*PI, q:0 },
+    { type:'revolute', thetaOffset:0, dOffset:0,      a:-0.425,  alpha:0,     min:-2*PI, max:2*PI, q:-PI/4 },
+    { type:'revolute', thetaOffset:0, dOffset:0,      a:-0.3922, alpha:0,     min:-PI,   max:PI,   q:PI/6 },
+    { type:'revolute', thetaOffset:0, dOffset:0.1093, a:0,       alpha:PI/2,  min:-2*PI, max:2*PI, q:0 },
+    { type:'revolute', thetaOffset:0, dOffset:0.0947, a:0,       alpha:-PI/2, min:-2*PI, max:2*PI, q:0 },
+    { type:'revolute', thetaOffset:0, dOffset:0.0823, a:0,       alpha:0,     min:-2*PI, max:2*PI, q:0 }
+  ]},
+  'SCARA': { joints: [
+    { type:'revolute',  thetaOffset:0, dOffset:0,    a:0.4, alpha:0,  min:-PI, max:PI,  q:0.5 },
+    { type:'revolute',  thetaOffset:0, dOffset:0,    a:0.3, alpha:PI, min:-PI, max:PI,  q:-0.8 },
+    { type:'prismatic', thetaOffset:0, dOffset:0.05, a:0,   alpha:0,  min:-0.1, max:0.2, q:0.05 },
+    { type:'revolute',  thetaOffset:0, dOffset:0,    a:0,   alpha:0,  min:-PI, max:PI,  q:0.3 }
+  ]},
+  'Stanford': { joints: [
+    { type:'revolute',  thetaOffset:0, dOffset:0,     a:0, alpha:-PI/2, min:-PI, max:PI,  q:0 },
+    { type:'revolute',  thetaOffset:0, dOffset:0.154, a:0, alpha:PI/2,  min:-PI, max:PI,  q:PI/6 },
+    { type:'prismatic', thetaOffset:0, dOffset:0.154, a:0, alpha:0,     min:0,   max:0.5, q:0.2 },
+    { type:'revolute',  thetaOffset:0, dOffset:0,     a:0, alpha:-PI/2, min:-PI, max:PI,  q:0 },
+    { type:'revolute',  thetaOffset:0, dOffset:0,     a:0, alpha:PI/2,  min:-PI, max:PI,  q:PI/4 },
+    { type:'revolute',  thetaOffset:0, dOffset:0,     a:0, alpha:0,     min:-PI, max:PI,  q:0 }
+  ]}
+};
+
+// ═══════════════════════════════════════════════════════
+//  SCENE MANAGER
+// ═══════════════════════════════════════════════════════
+
+class SceneManager {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.showFrames = true;
+    this.showGrid = true;
+    this.showWorkspace = false;
+    this.ortho = false;
+    this._wsPoints = null;
+  }
+
+  init() {
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x0c0d11);
+    this.scene.fog = new THREE.Fog(0x0c0d11, 10, 40);
+
+    const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
+
+    // Perspective camera
+    this.camP = new THREE.PerspectiveCamera(45, w/h, 0.001, 100);
+    this.camP.position.set(1.6, 1.2, 1.6);
+
+    // Orthographic camera
+    const s = 1.5;
+    this.camO = new THREE.OrthographicCamera(-s,s,-s*(h/w),s*(h/w),0.001,100);
+    this.camO.position.set(2,2,2);
+
+    this.camera = this.camP;
+
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: false });
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.setSize(w, h);
+
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.07;
+    this.controls.target.set(0, 0.2, 0);
+    this.controls.minDistance = 0.05;
+    this.controls.maxDistance = 20;
+
+    // Lights
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+    dir.position.set(4, 8, 4);
+    dir.castShadow = true;
+    dir.shadow.mapSize.set(1024, 1024);
+    this.scene.add(dir);
+    const fill = new THREE.DirectionalLight(0x88aaff, 0.3);
+    fill.position.set(-4, 1, -4);
+    this.scene.add(fill);
+
+    // Grid
+    this._grid = new THREE.GridHelper(6, 30, 0x222233, 0x1a1a2a);
+    this.scene.add(this._grid);
+
+    // World axes
+    this._worldAxes = new THREE.AxesHelper(0.25);
+    this.scene.add(this._worldAxes);
+
+    // Base platform
+    const baseGeo = new THREE.CylinderGeometry(0.07, 0.09, 0.03, 24);
+    const baseMat = new THREE.MeshStandardMaterial({color:0x2a2c3e,roughness:.6,metalness:.5});
+    this._base = new THREE.Mesh(baseGeo, baseMat);
+    this._base.position.y = 0.015;
+    this._base.receiveShadow = true;
+    this.scene.add(this._base);
+
+    // Robot group
+    this._robotGroup = new THREE.Group();
+    this.scene.add(this._robotGroup);
+
+    // Workspace group
+    this._wsGroup = new THREE.Group();
+    this.scene.add(this._wsGroup);
+
+    this.resize();
+    this._animate();
+  }
+
+  _animate() {
+    requestAnimationFrame(() => this._animate());
+    this.controls.update();
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  resize() {
+    const p = this.canvas.parentElement;
+    const w = p.clientWidth, h = p.clientHeight;
+    this.camP.aspect = w/h;
+    this.camP.updateProjectionMatrix();
+    const s = 1.5;
+    this.camO.left = -s; this.camO.right = s;
+    this.camO.top = s*(h/w); this.camO.bottom = -s*(h/w);
+    this.camO.updateProjectionMatrix();
+    this.renderer.setSize(w, h);
+  }
+
+  setTheme(dark) {
+    const bg = dark ? 0x0c0d11 : 0xe8eaf5;
+    const fog = dark ? 0x0c0d11 : 0xe8eaf5;
+    const g1 = dark ? 0x222233 : 0xbcc0d8;
+    const g2 = dark ? 0x1a1a2a : 0xccd0e8;
+    this.scene.background = new THREE.Color(bg);
+    this.scene.fog.color = new THREE.Color(fog);
+    if (this._grid.material[0]) {
+      this._grid.material[0].color.set(g1);
+      this._grid.material[1].color.set(g2);
+    }
+  }
+
+  toggleOrtho() {
+    this.ortho = !this.ortho;
+    const prev = this.camera;
+    this.camera = this.ortho ? this.camO : this.camP;
+    this.camO.position.copy(prev.position);
+    this.camO.quaternion.copy(prev.quaternion);
+    this.controls.object = this.camera;
+    this.controls.update();
+    return this.ortho;
+  }
+
+  focusRobot(fkMats) {
+    if (!fkMats.length) return;
+    const positions = [new THREE.Vector3()];
+    for (const m of fkMats) positions.push(matCol(m, 3));
+    const center = new THREE.Vector3();
+    for (const p of positions) center.add(p);
+    center.divideScalar(positions.length);
+    this.controls.target.copy(center);
+    const d = Math.max(1.5, positions[positions.length-1].length() * 2.5);
+    this.camera.position.copy(center).add(new THREE.Vector3(d,d*0.7,d));
+    this.controls.update();
+  }
+
+  updateRobot(robot, fkMats) {
+    this._robotGroup.clear();
+    const n = robot.joints.length;
+    if (!n) return;
+
+    const colors = JOINT_COLORS.map(c => new THREE.Color(c));
+    const positions = [new THREE.Vector3(0,0,0)];
+    for (const m of fkMats) positions.push(matCol(m, 3));
+
+    // Links
+    for (let i = 0; i < n; i++) {
+      const p0 = positions[i], p1 = positions[i+1];
+      const dist = p0.distanceTo(p1);
+      if (dist > 0.002) {
+        const geo = new THREE.CylinderGeometry(0.022, 0.022, dist, 14);
+        const mat = new THREE.MeshStandardMaterial({
+          color: colors[i % colors.length],
+          roughness: 0.35, metalness: 0.65
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.position.copy(p0).add(p1).multiplyScalar(0.5);
+        mesh.quaternion.setFromUnitVectors(
+          new THREE.Vector3(0,1,0),
+          p1.clone().sub(p0).normalize()
+        );
+        this._robotGroup.add(mesh);
+      }
+
+      // Joint
+      const c = colors[i % colors.length];
+      const isP = robot.joints[i].type === 'prismatic';
+      let jgeo;
+      if (isP) jgeo = new THREE.BoxGeometry(0.07, 0.07, 0.07);
+      else     jgeo = new THREE.SphereGeometry(0.04, 20, 20);
+      const jmat = new THREE.MeshStandardMaterial({
+        color: c, roughness: 0.25, metalness: 0.75,
+        emissive: c, emissiveIntensity: 0.08
+      });
+      const jmesh = new THREE.Mesh(jgeo, jmat);
+      jmesh.position.copy(positions[i+1]);
+      jmesh.castShadow = true;
+      this._robotGroup.add(jmesh);
+
+      // Coordinate frame
+      if (this.showFrames) {
+        this._robotGroup.add(this._makeFrame(fkMats[i], 0.1));
+      }
+    }
+
+    // Base frame
+    if (this.showFrames) {
+      this._robotGroup.add(this._makeFrame(new THREE.Matrix4(), 0.14));
+    }
+
+    // End effector
+    const eePos = positions[n];
+    const eeGeo = new THREE.OctahedronGeometry(0.035, 0);
+    const eeMat = new THREE.MeshStandardMaterial({
+      color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.35,
+      roughness: 0.15, metalness: 0.9
+    });
+    const ee = new THREE.Mesh(eeGeo, eeMat);
+    ee.position.copy(eePos);
+    this._robotGroup.add(ee);
+
+    // EE frame
+    if (this.showFrames) {
+      this._robotGroup.add(this._makeFrame(fkMats[n-1], 0.13));
+    }
+  }
+
+  _makeFrame(matrix, sz) {
+    const g = new THREE.Group();
+    const ox = matCol(matrix, 0).normalize();
+    const oy = matCol(matrix, 1).normalize();
+    const oz = matCol(matrix, 2).normalize();
+    const pos = matCol(matrix, 3);
+    const make = (dir, color) =>
+      new THREE.ArrowHelper(dir, pos, sz, color, sz*0.28, sz*0.14);
+    g.add(make(ox, 0xef4444));
+    g.add(make(oy, 0x22c55e));
+    g.add(make(oz, 0x3b82f6));
+    return g;
+  }
+
+  buildWorkspace(robot, samples = 1500) {
+    this._wsGroup.clear();
+    const pts = [];
+    const n = robot.joints.length;
+    for (let s = 0; s < samples; s++) {
+      for (let i = 0; i < n; i++) {
+        const j = robot.joints[i];
+        robot.setQ(i, j.min + Math.random() * (j.max - j.min));
+      }
+      const fk = robot.computeFK();
+      const p = matCol(fk[n-1], 3);
+      pts.push(p.x, p.y, p.z);
+    }
+    robot.resetQ();
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    const mat = new THREE.PointsMaterial({
+      color: 0x5b8def, size: 0.018, transparent: true, opacity: 0.35,
+      sizeAttenuation: true
+    });
+    this._wsGroup.add(new THREE.Points(geo, mat));
+  }
+
+  clearWorkspace() { this._wsGroup.clear(); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════
+
+function toast(msg, dur = 2500) {
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('fade-out');
+    el.addEventListener('animationend', () => el.remove());
+  }, dur);
+}
+
+// ═══════════════════════════════════════════════════════
+//  UI CONTROLLER
+// ═══════════════════════════════════════════════════════
+
+class UIController {
+  constructor(robot, scene) {
+    this.robot = robot;
+    this.scene = scene;
+    this._tab = 'pose';
+    this._animating = false;
+    this._animT = 0;
+    this._animRaf = null;
+    this._currentPreset = 'PUMA 560';
+  }
+
+  init() {
+    this._buildPresets();
+    this._attachTopBar();
+    this._attachPanelCollapse();
+    this._attachTabs();
+    this._attachViewportButtons();
+    this._attachKeyboard();
+    document.getElementById('welcome-btn').onclick = () => {
+      document.getElementById('welcome').style.display = 'none';
+    };
+    window.addEventListener('resize', () => this.scene.resize());
+  }
+
+  // ── Render loop ──
+  update() {
+    const t0 = performance.now();
+    const fk = this.robot.computeFK();
+    const J  = this.robot.computeJacobian(fk);
+    const ma = this.robot.analyzeManipulability(J);
+    const t1 = performance.now();
+
+    this.scene.updateRobot(this.robot, fk);
+    this._renderDHTable();
+    this._renderSliders();
+    this._renderTab(fk, J, ma);
+    this._renderStatus(fk, ma, (t1-t0).toFixed(2));
+    this._renderVPInfo(fk);
+  }
+
+  // ── DH Table ──
+  _renderDHTable() {
+    const tbody = document.getElementById('dh-tbody');
+    const prev = tbody.children.length;
+    const n = this.robot.joints.length;
+
+    // Rebuild only if count changed (performance)
+    if (prev !== n) {
+      tbody.innerHTML = '';
+      for (let i = 0; i < n; i++) this._createTableRow(tbody, i);
+    }
+    // Update values
+    for (let i = 0; i < n; i++) {
+      const j = this.robot.joints[i];
+      const row = tbody.children[i];
+      if (!row) continue;
+      const sel = row.querySelector('select');
+      if (sel.value !== j.type) sel.value = j.type;
+      const ins = row.querySelectorAll('input');
+      const vals = [j.thetaOffset*RAD, j.dOffset, j.a, j.alpha*RAD, j.min*RAD, j.max*RAD];
+      ins.forEach((inp, k) => {
+        if (document.activeElement !== inp)
+          inp.value = parseFloat(vals[k].toFixed(3));
+      });
+    }
+  }
+
+  _createTableRow(tbody, i) {
+    const j = this.robot.joints[i];
+    const c = JOINT_COLORS[i % JOINT_COLORS.length];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="joint-dot" style="background:${c}"></div></td>
+      <td><select>
+        <option value="revolute" ${j.type==='revolute'?'selected':''}>R</option>
+        <option value="prismatic" ${j.type==='prismatic'?'selected':''}>P</option>
+      </select></td>
+      <td><input type="number" step="1" value="${(j.thetaOffset*RAD).toFixed(1)}"></td>
+      <td><input type="number" step="0.01" value="${j.dOffset.toFixed(3)}"></td>
+      <td><input type="number" step="0.01" value="${j.a.toFixed(3)}"></td>
+      <td><input type="number" step="1" value="${(j.alpha*RAD).toFixed(1)}"></td>
+      <td><input type="number" step="1" value="${(j.min*RAD).toFixed(0)}"></td>
+      <td><input type="number" step="1" value="${(j.max*RAD).toFixed(0)}"></td>
+      <td><button class="del-btn">×</button></td>`;
+
+    const keys = ['thetaOffset','dOffset','a','alpha','min','max'];
+    const muls = [DEG, 1, 1, DEG, DEG, DEG];
+    tr.querySelectorAll('input').forEach((inp, k) => {
+      inp.addEventListener('change', () => {
+        this.robot.setParam(i, keys[k], parseFloat(inp.value) * muls[k]);
+        this.update();
+      });
+    });
+    tr.querySelector('select').addEventListener('change', e => {
+      this.robot.setParam(i, 'type', e.target.value);
+      this.update();
+    });
+    tr.querySelector('.del-btn').addEventListener('click', () => {
+      this.robot.removeJoint(i);
+      this.update();
+      toast(`Removed joint ${i+1}`);
+    });
+    tbody.appendChild(tr);
+  }
+
+  // ── Sliders ──
+  _renderSliders() {
+    const cont = document.getElementById('slider-container');
+    const n = this.robot.joints.length;
+    if (cont.children.length !== n) {
+      cont.innerHTML = '';
+      for (let i = 0; i < n; i++) this._createSlider(cont, i);
+    }
+    // Update values
+    for (let i = 0; i < n; i++) {
+      const j = this.robot.joints[i];
+      const row = cont.children[i];
+      if (!row) continue;
+      const inp = row.querySelector('input[type=range]');
+      const valEl = row.querySelector('.slider-value');
+      if (document.activeElement !== inp) inp.value = j.q;
+      const isR = j.type === 'revolute';
+      valEl.textContent = isR ? (j.q*RAD).toFixed(1)+'°' : j.q.toFixed(3)+'m';
+    }
+  }
+
+  _createSlider(cont, i) {
+    const j = this.robot.joints[i];
+    const c = JOINT_COLORS[i % JOINT_COLORS.length];
+    const isR = j.type === 'revolute';
+    const div = document.createElement('div');
+    div.className = 'slider-item';
+    div.innerHTML = `
+      <div class="slider-header">
+        <div class="slider-label">
+          <div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0"></div>
+          J${i+1}
+          <span class="slider-tag ${isR?'r':'p'}">${isR?'R':'P'}</span>
+        </div>
+        <span class="slider-value">${isR?(j.q*RAD).toFixed(1)+'°':j.q.toFixed(3)+'m'}</span>
+      </div>
+      <input type="range" min="${j.min}" max="${j.max}" step="${isR?0.01:0.001}" value="${j.q}">
+      <div class="slider-limits">
+        <span>${isR?(j.min*RAD).toFixed(0)+'°':j.min.toFixed(2)+'m'}</span>
+        <span>${isR?(j.max*RAD).toFixed(0)+'°':j.max.toFixed(2)+'m'}</span>
+      </div>`;
+    div.querySelector('input[type=range]').addEventListener('input', e => {
+      this.robot.setQ(i, parseFloat(e.target.value));
+      this.update();
+    });
+    cont.appendChild(div);
+  }
+
+  // ── Inspector tabs ──
+  _renderTab(fk, J, ma) {
+    const el = document.getElementById('tab-content');
+    switch(this._tab) {
+      case 'pose':     el.innerHTML = this._htmlPose(fk); break;
+      case 'matrices': el.innerHTML = this._htmlMatrices(fk); this._attachMatCollapse(); break;
+      case 'jacobian': el.innerHTML = this._htmlJacobian(J, ma); break;
+      case 'learn':    this._renderLearn(el); return;
+    }
+  }
+
+  _htmlPose(fk) {
+    if (!fk.length) return '<p class="text-muted" style="padding:12px">No joints defined.</p>';
+    const T = fk[fk.length-1];
+    const pos = matCol(T, 3);
+    const rpy = matToRPY(T);
+    const e = T.elements;
+    const row = (a,b,c,d) =>
+      `<div class="mat-row">
+        <span class="mat-num ${Math.abs(a)>.001?'accent':''}">${formatNum(a,4)}</span>
+        <span class="mat-num ${Math.abs(b)>.001?'accent':''}">${formatNum(b,4)}</span>
+        <span class="mat-num ${Math.abs(c)>.001?'accent':''}">${formatNum(c,4)}</span>
+        <span class="mat-num" style="color:var(--yellow)">${formatNum(d,4)}</span>
+      </div>`;
+    return `
+      <div class="inspector-section">
+        <div class="inspector-label">End-Effector Position</div>
+        <div class="pose-grid">
+          <div class="pose-cell"><div class="pc-lbl" style="color:#ef4444">X</div><div class="pc-val">${pos.x.toFixed(4)}</div></div>
+          <div class="pose-cell"><div class="pc-lbl" style="color:#22c55e">Y</div><div class="pc-val">${pos.y.toFixed(4)}</div></div>
+          <div class="pose-cell"><div class="pc-lbl" style="color:#3b82f6">Z</div><div class="pc-val">${pos.z.toFixed(4)}</div></div>
+        </div>
+      </div>
+      <div class="inspector-section">
+        <div class="inspector-label">Orientation (RPY)</div>
+        <div class="pose-grid">
+          <div class="pose-cell"><div class="pc-lbl">Roll</div><div class="pc-val">${(rpy.roll*RAD).toFixed(2)}°</div></div>
+          <div class="pose-cell"><div class="pc-lbl">Pitch</div><div class="pc-val">${(rpy.pitch*RAD).toFixed(2)}°</div></div>
+          <div class="pose-cell"><div class="pc-lbl">Yaw</div><div class="pc-val">${(rpy.yaw*RAD).toFixed(2)}°</div></div>
+        </div>
+      </div>
+      <div class="inspector-section">
+        <div class="inspector-label">Homogeneous Transform T<sub>0n</sub></div>
+        <div class="mat4">
+          ${row(e[0],e[4],e[8],e[12])}
+          ${row(e[1],e[5],e[9],e[13])}
+          ${row(e[2],e[6],e[10],e[14])}
+          ${row(e[3],e[7],e[11],e[15])}
+        </div>
+      </div>`;
+  }
+
+  _htmlMatrices(fk) {
+    if (!fk.length) return '<p class="text-muted" style="padding:12px">No joints defined.</p>';
+    let html = '';
+    for (let i = 0; i < fk.length; i++) {
+      const e = fk[i].elements;
+      const row = (a,b,c,d) =>
+        `<div class="mat-row">
+          <span class="mat-num">${formatNum(a,3)}</span>
+          <span class="mat-num">${formatNum(b,3)}</span>
+          <span class="mat-num">${formatNum(c,3)}</span>
+          <span class="mat-num" style="color:var(--yellow)">${formatNum(d,3)}</span>
+        </div>`;
+      html += `<div class="mat-collapse">
+        <div class="mat-collapse-header" data-idx="${i}">
+          <span>T<sub>0,${i+1}</sub></span><span>▾</span>
+        </div>
+        <div class="mat-collapse-body ${i===fk.length-1?'open':''}">
+          <div class="mat4">
+            ${row(e[0],e[4],e[8],e[12])}
+            ${row(e[1],e[5],e[9],e[13])}
+            ${row(e[2],e[6],e[10],e[14])}
+            ${row(e[3],e[7],e[11],e[15])}
+          </div>
+        </div>
+      </div>`;
+    }
+    return html;
+  }
+
+  _attachMatCollapse() {
+    document.querySelectorAll('.mat-collapse-header').forEach(h => {
+      h.onclick = () => {
+        const body = h.nextElementSibling;
+        const open = body.classList.toggle('open');
+        h.querySelector('span:last-child').textContent = open ? '▾' : '▸';
+      };
+    });
+  }
+
+  _htmlJacobian(J, ma) {
+    if (!J.length) return '<p class="text-muted" style="padding:12px">No joints defined.</p>';
+    const n = J.length;
+    const rows = ['vx','vy','vz','ωx','ωy','ωz'];
+    let jhtml = `<div class="jmat"><div class="jrow" style="color:var(--text3);font-size:9px;margin-bottom:4px">
+      ${J.map((_,i)=>`<span style="width:56px;text-align:right">J${i+1}</span>`).join('')}
+    </div>`;
+    for (let r = 0; r < 6; r++) {
+      const label = rows[r];
+      jhtml += `<div class="jrow"><span style="color:var(--text3);width:20px;font-size:9px">${label}</span>`;
+      for (let c = 0; c < n; c++) {
+        const v = J[c][r];
+        const col = Math.abs(v) > 0.001 ? 'var(--text)' : 'var(--text3)';
+        jhtml += `<span class="jnum" style="color:${col}">${formatNum(v,3)}</span>`;
+      }
+      jhtml += '</div>';
+    }
+    jhtml += '</div>';
+
+    const badge = ma.isSingular
+      ? '<span class="status-badge bad">⚠ Singular</span>'
+      : ma.w > 0.1
+        ? '<span class="status-badge good">● Well-conditioned</span>'
+        : '<span class="status-badge warn">◈ Near singularity</span>';
+
+    return `
+      <div class="inspector-section">
+        <div class="inspector-label">Geometric Jacobian (6×${n})</div>
+        <div class="jacobian-wrap">${jhtml}</div>
+      </div>
+      <div class="inspector-section">
+        <div class="inspector-label">Manipulability Analysis</div>
+        <div class="manip-card">
+          <div class="manip-row">
+            <span class="manip-key">Yoshikawa measure <i>w</i></span>
+            <span class="manip-val text-mono">${ma.wStr}</span>
+          </div>
+          <div class="manip-row">
+            <span class="manip-key">Status</span>
+            ${badge}
+          </div>
+        </div>
+        <div class="learn-block" style="font-size:11px">
+          <b>Manipulability</b> $w = \\sqrt{\\det(J_v J_v^T)}$ measures how far the robot is from a singular configuration. Higher values indicate greater dexterity.
+        </div>
+      </div>`;
+  }
+
+  _renderLearn(el) {
+    if (el.dataset.learnRendered) return;
+    el.dataset.learnRendered = '1';
+    el.innerHTML = `
+      <div class="learn-block">
+        <h4>Denavit–Hartenberg Convention</h4>
+        <p>The DH convention represents each joint-link pair by four parameters that define the coordinate transformation between consecutive frames.</p>
+        <div class="eq">$$T_{i-1,i} = R_z(\\theta_i)\\,T_z(d_i)\\,T_x(a_i)\\,R_x(\\alpha_i)$$</div>
+      </div>
+      <div class="learn-block">
+        <h4>DH Parameters</h4>
+        <div class="learn-param"><span class="learn-param-sym">θ</span><span><b>Joint angle</b> — rotation about z<sub>i−1</sub> that aligns x<sub>i−1</sub> with x<sub>i</sub></span></div>
+        <div class="learn-param"><span class="learn-param-sym">d</span><span><b>Link offset</b> — translation along z<sub>i−1</sub> to the common normal</span></div>
+        <div class="learn-param"><span class="learn-param-sym">a</span><span><b>Link length</b> — distance between z<sub>i−1</sub> and z<sub>i</sub> along the common normal</span></div>
+        <div class="learn-param"><span class="learn-param-sym">α</span><span><b>Twist angle</b> — rotation about x<sub>i</sub> that aligns z<sub>i−1</sub> with z<sub>i</sub></span></div>
+      </div>
+      <div class="learn-block">
+        <h4>Transformation Matrix</h4>
+        <div class="eq">$$T = \\begin{bmatrix} c\\theta & -s\\theta c\\alpha & s\\theta s\\alpha & a c\\theta \\\\ s\\theta & c\\theta c\\alpha & -c\\theta s\\alpha & a s\\theta \\\\ 0 & s\\alpha & c\\alpha & d \\\\ 0 & 0 & 0 & 1 \\end{bmatrix}$$</div>
+      </div>
+      <div class="learn-block">
+        <h4>Forward Kinematics</h4>
+        <p>The end-effector pose is obtained by chaining all DH transformations:</p>
+        <div class="eq">$$T_0^n = \\prod_{i=1}^{n} T_{i-1}^{i}(q_i)$$</div>
+      </div>
+      <div class="learn-block">
+        <h4>Geometric Jacobian</h4>
+        <p>For a revolute joint $i$:</p>
+        <div class="eq">$$J_i = \\begin{bmatrix} \\hat{z}_{i-1} \\times (p_e - p_{i-1}) \\\\ \\hat{z}_{i-1} \\end{bmatrix}$$</div>
+        <p>For a prismatic joint $i$:</p>
+        <div class="eq">$$J_i = \\begin{bmatrix} \\hat{z}_{i-1} \\\\ 0 \\end{bmatrix}$$</div>
+      </div>
+      <div class="learn-block">
+        <h4>Singularities</h4>
+        <p>A robot is at a singular configuration when the Jacobian loses rank — the robot loses one or more degrees of freedom in task space. The <b>Yoshikawa manipulability measure</b> quantifies this:</p>
+        <div class="eq">$$w = \\sqrt{\\det(J_v J_v^T)} \\geq 0$$</div>
+        <p>When $w = 0$, the robot is at a singularity.</p>
+      </div>`;
+    if (window.MathJax) MathJax.typesetPromise([el]);
+  }
+
+  // ── Status bar ──
+  _renderStatus(fk, ma, ms) {
+    document.getElementById('sb-fk').textContent = `FK: ${ms}ms`;
+    if (fk.length) {
+      const p = matCol(fk[fk.length-1], 3);
+      document.getElementById('sb-ee').textContent =
+        `[${p.x.toFixed(3)}, ${p.y.toFixed(3)}, ${p.z.toFixed(3)}]`;
+    }
+    document.getElementById('sb-manip').textContent = `w = ${ma.wStr}`;
+    document.getElementById('sb-dot').style.background =
+      ma.isSingular ? 'var(--red)' : ma.w > 0.1 ? 'var(--green)' : 'var(--yellow)';
+    document.getElementById('sb-status').textContent =
+      ma.isSingular ? 'Singular configuration' : 'Ready';
+  }
+
+  _renderVPInfo(fk) {
+    const n = this.robot.joints.length;
+    document.getElementById('badge-joints').textContent = `${n} joint${n!==1?'s':''}`;
+    if (fk.length) {
+      const p = matCol(fk[fk.length-1], 3);
+      document.getElementById('badge-ee').textContent =
+        `EE: (${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)})`;
+    }
+  }
+
+  // ── Topbar actions ──
+  _attachTopBar() {
+    document.getElementById('btn-add-joint').onclick = () => {
+      const last = this.robot.joints[this.robot.joints.length-1];
+      this.robot.addJoint(last ? {type:last.type} : {});
+      this.update();
+      toast('Added joint');
+    };
+    document.getElementById('btn-remove-joint').onclick = () => {
+      if (this.robot.removeJoint()) { this.update(); toast('Removed last joint'); }
+      else toast('Need at least 1 joint');
+    };
+    document.getElementById('btn-reset-q').onclick = () => {
+      this.robot.resetQ(); this.update(); toast('Reset all joints');
+    };
+    document.getElementById('btn-undo').onclick = () => {
+      if (this.robot.undo()) { this.update(); toast('Undo'); }
+    };
+    document.getElementById('btn-redo').onclick = () => {
+      if (this.robot.redo()) { this.update(); toast('Redo'); }
+    };
+    document.getElementById('btn-animate').onclick = () => this._toggleAnimation();
+    document.getElementById('btn-theme').onclick = () => this._toggleTheme();
+    document.getElementById('btn-export').onclick = () => this._export();
+    document.getElementById('btn-import').onclick = () => document.getElementById('import-input').click();
+    document.getElementById('import-input').onchange = e => this._import(e);
+    document.getElementById('preset-select').onchange = e => {
+      this._loadPreset(e.target.value);
+    };
+  }
+
+  _attachPanelCollapse() {
+    ['dh','joints','presets'].forEach(id => {
+      const ph = document.getElementById(`ph-${id}`);
+      const pb = document.getElementById(`pb-${id}`);
+      ph.onclick = () => {
+        ph.classList.toggle('collapsed');
+        pb.classList.toggle('collapsed');
+      };
+    });
+  }
+
+  _attachTabs() {
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        this._tab = tab.dataset.tab;
+        const el = document.getElementById('tab-content');
+        delete el.dataset.learnRendered;
+        const fk = this.robot.computeFK();
+        const J  = this.robot.computeJacobian(fk);
+        const ma = this.robot.analyzeManipulability(J);
+        this._renderTab(fk, J, ma);
+      };
+    });
+  }
+
+  _attachViewportButtons() {
+    document.getElementById('vpb-frames').onclick = e => {
+      this.scene.showFrames = !this.scene.showFrames;
+      e.currentTarget.classList.toggle('active');
+      this.update();
+    };
+    document.getElementById('vpb-grid').onclick = e => {
+      this.scene.showGrid = !this.scene.showGrid;
+      this.scene._grid.visible = this.scene.showGrid;
+      e.currentTarget.classList.toggle('active');
+    };
+    document.getElementById('vpb-ws').onclick = e => {
+      this.scene.showWorkspace = !this.scene.showWorkspace;
+      e.currentTarget.classList.toggle('active');
+      if (this.scene.showWorkspace) {
+        toast('Computing workspace…');
+        setTimeout(() => { this.scene.buildWorkspace(this.robot); toast('Workspace ready'); }, 50);
+      } else {
+        this.scene.clearWorkspace();
+      }
+    };
+    document.getElementById('vpb-ortho').onclick = e => {
+      const o = this.scene.toggleOrtho();
+      e.currentTarget.classList.toggle('active', o);
+      toast(o ? 'Orthographic camera' : 'Perspective camera');
+    };
+    document.getElementById('vpb-focus').onclick = () => {
+      this.scene.focusRobot(this.robot.computeFK());
+    };
+  }
+
+  _attachKeyboard() {
+    document.addEventListener('keydown', e => {
+      if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (ctrl && e.key==='z') { e.preventDefault(); if (this.robot.undo()) { this.update(); toast('Undo'); } }
+      else if (ctrl && (e.key==='y'||e.key==='Z')) { e.preventDefault(); if (this.robot.redo()) { this.update(); toast('Redo'); } }
+      else if (e.key===' ') { e.preventDefault(); this._toggleAnimation(); }
+      else if (e.key==='r'||e.key==='R') { this.robot.resetQ(); this.update(); toast('Reset joints'); }
+      else if (e.key==='t'||e.key==='T') this._toggleTheme();
+      else if (e.key==='f'||e.key==='F') this.scene.focusRobot(this.robot.computeFK());
+      else if (e.key==='h'||e.key==='H') document.getElementById('btn-left-toggle').click();
+      else if (e.key==='i'||e.key==='I') document.getElementById('btn-right-toggle').click();
+    });
+    document.getElementById('btn-left-toggle').onclick = () => {
+      document.getElementById('left-panel').classList.toggle('collapsed');
+      this.scene.resize();
+    };
+    document.getElementById('btn-right-toggle').onclick = () => {
+      document.getElementById('right-panel').classList.toggle('collapsed');
+      this.scene.resize();
+    };
+  }
+
+  // ── Animation ──
+  _toggleAnimation() {
+    this._animating = !this._animating;
+    document.getElementById('btn-animate').textContent = this._animating ? '⏸' : '▶';
+    if (this._animating) this._animLoop();
+    else if (this._animRaf) { cancelAnimationFrame(this._animRaf); this._animRaf = null; }
+  }
+
+  _animLoop() {
+    this._animT += 0.012;
+    const n = this.robot.joints.length;
+    for (let i = 0; i < n; i++) {
+      const j = this.robot.joints[i];
+      const range = j.max - j.min;
+      const center = (j.max + j.min) / 2;
+      const amp = range * 0.3;
+      this.robot.setQ(i, center + amp * Math.sin(this._animT * (1 + i*0.3)));
+    }
+    this.update();
+    this._animRaf = requestAnimationFrame(() => this._animLoop());
+  }
+
+  // ── Theme ──
+  _toggleTheme() {
+    const html = document.documentElement;
+    const dark = html.dataset.theme === 'dark';
+    html.dataset.theme = dark ? 'light' : 'dark';
+    document.getElementById('btn-theme').textContent = dark ? '☾' : '☀';
+    this.scene.setTheme(!dark);
+    toast(dark ? 'Light mode' : 'Dark mode');
+  }
+
+  // ── Export / Import ──
+  _export() {
+    const json = JSON.stringify(this.robot.toJSON(), null, 2);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([json], {type:'application/json'}));
+    a.download = 'robot.json';
+    a.click();
+    toast('Exported robot.json');
+  }
+
+  _import(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        this.robot.load(JSON.parse(ev.target.result));
+        this.update();
+        toast(`Imported: ${file.name}`);
+      } catch { toast('Import failed: invalid JSON'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  // ── Presets ──
+  _buildPresets() {
+    const grid = document.getElementById('preset-grid');
+    for (const name of Object.keys(PRESETS)) {
+      const btn = document.createElement('button');
+      btn.className = 'preset-btn';
+      btn.textContent = name;
+      if (name === this._currentPreset) btn.classList.add('active');
+      btn.onclick = () => { this._loadPreset(name); };
+      grid.appendChild(btn);
+    }
+  }
+
+  _loadPreset(name) {
+    if (!PRESETS[name]) return;
+    this.robot.joints = PRESETS[name].joints.map(j => ({...j}));
+    this.robot._commit();
+    this._currentPreset = name;
+    document.querySelectorAll('.preset-btn').forEach(b => {
+      b.classList.toggle('active', b.textContent === name);
+    });
+    document.getElementById('preset-select').value = name;
+    // Force slider/table rebuild
+    document.getElementById('slider-container').innerHTML = '';
+    document.getElementById('dh-tbody').innerHTML = '';
+    this.update();
+    this.scene.focusRobot(this.robot.computeFK());
+    toast(`Loaded: ${name}`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  APPLICATION INIT
+// ═══════════════════════════════════════════════════════
+
+const robot = new DHRobot();
+const scene = new SceneManager(document.getElementById('canvas'));
+const ui    = new UIController(robot, scene);
+
+scene.init();
+ui.init();
+ui._loadPreset('PUMA 560');
+
+// Dismiss welcome on click outside card
+document.getElementById('welcome').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+
+</script>
+</body>
+</html>
