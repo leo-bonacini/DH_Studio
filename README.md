@@ -1,14 +1,10 @@
 # DH Studio
 
-Interactive Denavit–Hartenberg Robotics Engineering Platform
-
----
+Interactive Denavit-Hartenberg Robotics Engineering Platform
 
 ## Overview
 
 DH Studio is a professional browser-based application for visualizing, analyzing, and learning robot manipulator kinematics using the Denavit–Hartenberg convention. It is designed to serve robotics researchers, university professors, graduate students, and engineering teams who need a fast and intuitive tool for robot modeling and analysis.
-
----
 
 ## Features
 
@@ -46,8 +42,6 @@ Built on Three.js with physically based rendering, the viewport provides:
 - Sinusoidal joint animation
 - Toast notifications
 
----
-
 ## Preset Robots
 
 | Name | Joints | Type |
@@ -58,8 +52,6 @@ Built on Three.js with physically based rendering, the viewport provides:
 | UR5 | 6 | Collaborative |
 | SCARA | 4 | Assembly (prismatic) |
 | Stanford | 6 | Research (prismatic) |
-
----
 
 ## Keyboard Shortcuts
 
@@ -74,11 +66,9 @@ Built on Three.js with physically based rendering, the viewport provides:
 | Ctrl Z | Undo |
 | Ctrl Y | Redo |
 
----
-
 ## DH Convention
 
-The application uses the standard (Craig) Denavit–Hartenberg convention. Each joint-link pair is described by four parameters:
+The application uses the standard (Craig) Denavit-Hartenberg convention. Each joint-link pair is described by four parameters:
 
 | Parameter | Symbol | Description |
 |---|---|---|
@@ -95,8 +85,6 @@ which expands to the homogeneous matrix:
 
 $$T_{i-1,i} = \begin{bmatrix} c\theta_i & -s\theta_i \, c\alpha_i & s\theta_i \, s\alpha_i & a_i \, c\theta_i \\ s\theta_i & c\theta_i \, c\alpha_i & -c\theta_i \, s\alpha_i & a_i \, s\theta_i \\ 0 & s\alpha_i & c\alpha_i & d_i \\ 0 & 0 & 0 & 1 \end{bmatrix}$$
 
----
-
 ## Forward Kinematics
 
 The end-effector pose is obtained by chaining all joint transforms from base to tip:
@@ -104,8 +92,6 @@ The end-effector pose is obtained by chaining all joint transforms from base to 
 $$T_0^n = \prod_{i=1}^{n} T_{i-1}^{\,i}(q_i)$$
 
 where $q_i = \theta_i$ for a revolute joint and $q_i = d_i$ for a prismatic joint.
-
----
 
 ## Usage
 
@@ -122,8 +108,6 @@ Open `index.html` in any modern browser. No build step or server is required. CD
 4. Open the **Jacobian** tab to inspect manipulability in real time.
 5. Export your configuration as JSON for later use.
 
----
-
 ## File Structure
 
 ```
@@ -131,8 +115,6 @@ DH_Studio/
   index.html    Single-file application (HTML, CSS, JavaScript)
   README.md     This document
 ```
-
----
 
 ## Technical Notes
 
@@ -161,14 +143,3 @@ When $w \to 0$ the robot approaches a singular configuration and loses one or mo
 | $w > 0.1$ | Well-conditioned | Green |
 | $0 < w \leq 0.1$ | Near singularity | Yellow |
 | $w \approx 0$ | Singular | Red |
-
----
-
-## Browser Compatibility
-
-Requires ES module and import map support. Tested on:
-
-- Chrome 112+
-- Firefox 108+
-- Safari 16.4+
-- Edge 112+
