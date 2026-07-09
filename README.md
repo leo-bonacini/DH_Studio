@@ -134,7 +134,7 @@ $$\mathbf{J}_i = \begin{bmatrix} \hat{z}_{i-1} \\ \mathbf{0} \end{bmatrix}$$
 
 The Yoshikawa manipulability measure is computed from the linear velocity sub-Jacobian $J_v$ (first three rows):
 
-$$w = \sqrt{\det\!\left(J_v \, J_v^T\right)} \geq 0$$
+$$w = \sqrt{\det\\left(J_v \, J_v^T\right)} \geq 0$$
 
 When $w \to 0$ the robot approaches a singular configuration and loses one or more degrees of freedom in task space. The status indicator in the interface reflects three states:
 
