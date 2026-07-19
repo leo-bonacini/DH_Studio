@@ -321,6 +321,8 @@ mjx-container{display:inline!important}
     <span id="sb-ee" class="text-mono">EE: —</span>
     <span class="sb-sep">·</span>
     <span id="sb-manip">w = —</span>
+    <span class="sb-sep">·</span>
+    <span id="sb-visits" title="Total page visits">Visits: —</span>
     <span style="margin-left:auto;color:var(--text3)">DH Studio v1.0</span>
   </div>
 </div>
@@ -1408,6 +1410,16 @@ ui._loadPreset('PUMA 560');
 document.getElementById('welcome').addEventListener('click', function(e) {
   if (e.target === this) this.style.display = 'none';
 });
+
+// Page visit counter (free hit-counter service, no key required)
+fetch('https://abacus.jasoncameron.dev/hit/dh-studio-leobonacini/visits')
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('sb-visits').textContent = `Visits: ${data.value}`;
+  })
+  .catch(() => {
+    document.getElementById('sb-visits').textContent = 'Visits: n/a';
+  });
 
 </script>
 </body>
