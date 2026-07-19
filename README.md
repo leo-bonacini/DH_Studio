@@ -143,3 +143,7 @@ When $w \to 0$ the robot approaches a singular configuration and loses one or mo
 | $w > 0.1$ | Well-conditioned | Green |
 | $0 < w \leq 0.1$ | Near singularity | Yellow |
 | $w \approx 0$ | Singular | Red |
+
+## License
+
+MIT · see [LICENSE](LICENSE)
