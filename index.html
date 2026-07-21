@@ -392,6 +392,14 @@ function det3(m) {
         +m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
 }
 
+function detN(m) {
+  const s = m.length;
+  if (s === 0) return 0;
+  if (s === 1) return m[0][0];
+  if (s === 2) return m[0][0]*m[1][1] - m[0][1]*m[1][0];
+  return det3(m);
+}
+
 // Rotation matrix → RPY (ZYX Euler)
 function matToRPY(m) {
   const e = m.elements;
@@ -504,12 +512,21 @@ class DHRobot {
   analyzeManipulability(J) {
     const n = J.length;
     if (!n) return { w: 0, isSingular: true, wStr: '0.0000' };
-    // 3×3 Jv*Jv^T
-    const M = [[0,0,0],[0,0,0],[0,0,0]];
-    for (let i = 0; i < 3; i++)
-      for (let jj = 0; jj < 3; jj++)
-        for (let k = 0; k < n; k++) M[i][jj] += J[k][i]*J[k][jj];
-    const d = det3(M);
+    // Jv*Jv^T (3×3) and Jv^T*Jv (n×n) share the same nonzero singular values;
+    // when n < 3 the 3×3 form is always rank-deficient (padded with a zero
+    // row/col), so use the smaller n×n Gram matrix instead.
+    const m = Math.min(n, 3);
+    const M = Array.from({ length: m }, () => new Array(m).fill(0));
+    if (n >= 3) {
+      for (let i = 0; i < 3; i++)
+        for (let jj = 0; jj < 3; jj++)
+          for (let k = 0; k < n; k++) M[i][jj] += J[k][i]*J[k][jj];
+    } else {
+      for (let k1 = 0; k1 < n; k1++)
+        for (let k2 = 0; k2 < n; k2++)
+          for (let i = 0; i < 3; i++) M[k1][k2] += J[k1][i]*J[k2][i];
+    }
+    const d = detN(M);
     const w = Math.sqrt(Math.max(0, d));
     return { w, isSingular: w < 0.001, wStr: w.toExponential(3) };
   }
