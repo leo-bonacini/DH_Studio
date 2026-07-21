@@ -1,6 +1,8 @@
-# DH Studio
+<p align="center">
+  <img src="assets/logo.svg" alt="DH Studio" height="72">
+</p>
 
-Interactive Denavit-Hartenberg Robotics Engineering Platform
+<p align="center">Interactive Denavit-Hartenberg Robotics Engineering Platform</p>
 
 ## Overview
 
