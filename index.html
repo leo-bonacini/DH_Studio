@@ -65,7 +65,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;f
 
 /* ── Topbar ── */
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;letter-spacing:-.3px;color:var(--text);margin-right:8px}
-.logo-icon{width:24px;height:24px;background:linear-gradient(135deg,var(--accent),var(--j1));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:800}
+.logo-icon{width:24px;height:24px;border-radius:6px;display:block}
 .top-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 4px}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--text2);cursor:pointer;font-size:12px;font-family:inherit;transition:all .15s;white-space:nowrap;line-height:1}
 .btn:hover{background:var(--surface2);color:var(--text);border-color:var(--text3)}
@@ -213,7 +213,7 @@ mjx-container{display:inline!important}
   <!-- TOP BAR -->
   <nav id="topbar">
     <button class="btn icon" id="btn-left-toggle" title="Toggle left panel (H)">≡</button>
-    <div class="logo"><div class="logo-icon">DH</div>DH Studio</div>
+    <div class="logo"><img class="logo-icon" src="assets/logo-icon.svg" alt="DH Studio logo">DH Studio</div>
     <div class="top-sep"></div>
     <select class="preset-select" id="preset-select">
       <option>2R Planar</option>
@@ -338,7 +338,7 @@ mjx-container{display:inline!important}
 <!-- WELCOME -->
 <div id="welcome">
   <div class="welcome-card">
-    <h2>DH Studio</h2>
+    <h2><img src="assets/logo-icon.svg" alt="" width="32" height="32" style="border-radius:7px;vertical-align:-6px;margin-right:8px">DH Studio</h2>
     <p>Interactive Denavit–Hartenberg robotics platform for visualization, analysis, and education.</p>
     <div class="welcome-features">
       <div class="wf"><strong>3D Visualization</strong>Real-time Three.js rendering</div>
