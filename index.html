@@ -120,6 +120,8 @@ input[type=range]{width:100%;height:4px;accent-color:var(--accent);cursor:pointe
 .preset-btn{padding:7px 8px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--text2);cursor:pointer;font-size:11px;text-align:center;transition:all .15s;font-family:inherit}
 .preset-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 .preset-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);font-weight:600}
+.ph-action{padding:2px 8px;border:1px solid var(--border);border-radius:var(--r);background:transparent;color:var(--text2);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s}
+.ph-action:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 
 /* ── Right panel tabs ── */
 .tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -219,6 +221,7 @@ mjx-container{display:inline!important}
       <option>UR5</option>
       <option>SCARA</option>
       <option>Stanford</option>
+      <option>Custom</option>
     </select>
     <button class="btn" id="btn-add-joint" title="Add joint">+ Joint</button>
     <button class="btn" id="btn-remove-joint" title="Remove last joint">− Joint</button>
@@ -275,6 +278,7 @@ mjx-container{display:inline!important}
       <div class="panel-section" style="flex-shrink:0">
         <div class="panel-header" id="ph-presets">
           <span>Presets</span>
+          <button class="ph-action" id="btn-new-robot" title="Clear the robot and start building from scratch">+ New</button>
           <span class="ph-arrow">▾</span>
         </div>
         <div class="panel-body" id="pb-presets" style="max-height:120px">
@@ -995,7 +999,10 @@ class UIController {
     switch(this._tab) {
       case 'pose':     el.innerHTML = this._htmlPose(fk); break;
       case 'matrices': el.innerHTML = this._htmlMatrices(fk); this._attachMatCollapse(); break;
-      case 'jacobian': el.innerHTML = this._htmlJacobian(J, ma); break;
+      case 'jacobian':
+        el.innerHTML = this._htmlJacobian(J, ma);
+        if (window.MathJax) MathJax.typesetPromise([el]);
+        break;
       case 'learn':    this._renderLearn(el); return;
     }
   }
@@ -1221,7 +1228,12 @@ class UIController {
     document.getElementById('btn-import').onclick = () => document.getElementById('import-input').click();
     document.getElementById('import-input').onchange = e => this._import(e);
     document.getElementById('preset-select').onchange = e => {
-      this._loadPreset(e.target.value);
+      if (e.target.value === 'Custom') this._newRobot();
+      else this._loadPreset(e.target.value);
+    };
+    document.getElementById('btn-new-robot').onclick = e => {
+      e.stopPropagation();
+      this._newRobot();
     };
   }
 
@@ -1391,6 +1403,18 @@ class UIController {
     this.update();
     this.scene.focusRobot(this.robot.computeFK());
     toast(`Loaded: ${name}`);
+  }
+
+  _newRobot() {
+    this.robot.joints = [];
+    this.robot._commit();
+    this._currentPreset = null;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('preset-select').value = 'Custom';
+    document.getElementById('slider-container').innerHTML = '';
+    document.getElementById('dh-tbody').innerHTML = '';
+    this.update();
+    toast('New robot — click "+ Joint" to start building');
   }
 }
 
