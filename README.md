@@ -6,7 +6,7 @@
 
 ## Overview
 
-DH Studio is a professional browser-based application for visualizing, analyzing, and learning robot manipulator kinematics using the Denavit–Hartenberg convention. It is designed to serve robotics researchers, university professors, graduate students, and engineering teams who need a fast and intuitive tool for robot modeling and analysis.
+DH Studio is a browser app for building robot manipulators with the Denavit–Hartenberg convention and looking at their kinematics: forward kinematics, the end-effector pose and singularities. It runs entirely in the browser, with nothing to install.
 
 ## Features
 
