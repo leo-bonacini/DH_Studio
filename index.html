@@ -210,7 +210,7 @@ mjx-container{display:inline!important}
 <body>
 
 <div id="app">
-  <!-- TOP BAR -->
+  <!-- Top bar -->
   <nav id="topbar">
     <button class="btn icon" id="btn-left-toggle" title="Toggle left panel (H)">≡</button>
     <div class="logo"><img class="logo-icon" src="assets/logo-icon.svg" alt="DH Studio logo">DH Studio</div>
@@ -242,9 +242,9 @@ mjx-container{display:inline!important}
     </div>
   </nav>
 
-  <!-- MAIN -->
+  <!-- Main -->
   <div id="main">
-    <!-- LEFT PANEL -->
+    <!-- Left panel -->
     <aside id="left-panel">
       <!-- DH Table -->
       <div class="panel-section" style="flex-shrink:0">
@@ -288,7 +288,7 @@ mjx-container{display:inline!important}
       </div>
     </aside>
 
-    <!-- VIEWPORT -->
+    <!-- Viewport -->
     <div id="viewport-wrap">
       <canvas id="canvas" tabindex="0"></canvas>
       <div class="vp-info" id="vp-info">
@@ -304,7 +304,7 @@ mjx-container{display:inline!important}
       </div>
     </div>
 
-    <!-- RIGHT PANEL -->
+    <!-- Right panel -->
     <aside id="right-panel">
       <div class="tabs" id="inspector-tabs">
         <div class="tab active" data-tab="pose">Pose</div>
@@ -316,7 +316,7 @@ mjx-container{display:inline!important}
     </aside>
   </div>
 
-  <!-- STATUS BAR -->
+  <!-- Status bar -->
   <div id="statusbar">
     <div class="sb-dot" id="sb-dot"></div>
     <span id="sb-status">Ready</span>
@@ -332,10 +332,10 @@ mjx-container{display:inline!important}
   </div>
 </div>
 
-<!-- TOAST -->
+<!-- Toast -->
 <div id="toast-container"></div>
 
-<!-- WELCOME -->
+<!-- Welcome -->
 <div id="welcome">
   <div class="welcome-card">
     <h2><img src="assets/logo-icon.svg" alt="" width="32" height="32" style="border-radius:7px;vertical-align:-6px;margin-right:8px">DH Studio</h2>
@@ -354,9 +354,7 @@ mjx-container{display:inline!important}
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ═══════════════════════════════════════════════════════
 //  MATH UTILITIES
-// ═══════════════════════════════════════════════════════
 
 const DEG = Math.PI / 180;
 const RAD = 180 / Math.PI;
@@ -412,9 +410,7 @@ function matToRPY(m) {
   return {roll, pitch, yaw};
 }
 
-// ═══════════════════════════════════════════════════════
 //  DH ROBOT
-// ═══════════════════════════════════════════════════════
 
 const JOINT_COLORS = ['#5b8def','#a78bfa','#34d399','#fbbf24','#f87171','#fb7185','#38bdf8','#a3e635'];
 
@@ -539,9 +535,7 @@ class DHRobot {
   toJSON() { return { version: 1, joints: this._clone() }; }
 }
 
-// ═══════════════════════════════════════════════════════
 //  PRESETS
-// ═══════════════════════════════════════════════════════
 
 const PI = Math.PI;
 
@@ -587,9 +581,7 @@ const PRESETS = {
   ]}
 };
 
-// ═══════════════════════════════════════════════════════
 //  SCENE MANAGER
-// ═══════════════════════════════════════════════════════
 
 class SceneManager {
   constructor(canvas) {
@@ -838,9 +830,7 @@ class SceneManager {
   clearWorkspace() { this._wsGroup.clear(); }
 }
 
-// ═══════════════════════════════════════════════════════
 //  TOAST
-// ═══════════════════════════════════════════════════════
 
 function toast(msg, dur = 2500) {
   const c = document.getElementById('toast-container');
@@ -854,9 +844,7 @@ function toast(msg, dur = 2500) {
   }, dur);
 }
 
-// ═══════════════════════════════════════════════════════
 //  UI CONTROLLER
-// ═══════════════════════════════════════════════════════
 
 class UIController {
   constructor(robot, scene) {
@@ -1436,9 +1424,7 @@ class UIController {
   }
 }
 
-// ═══════════════════════════════════════════════════════
 //  APPLICATION INIT
-// ═══════════════════════════════════════════════════════
 
 const robot = new DHRobot();
 const scene = new SceneManager(document.getElementById('canvas'));
